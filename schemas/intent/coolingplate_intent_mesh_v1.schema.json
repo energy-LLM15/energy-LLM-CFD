@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CoolingPlate-Intent@mesh_v1.0",
+  "title": "CoolingPlate Intent (mesh-only, fluid-side heat transfer)",
+  "type": "object",
+  "required": [
+    "profile",
+    "job_meta",
+    "mesh",
+    "scenario",
+    "operating_conditions",
+    "materials",
+    "accuracy_pref",
+    "deliverables",
+    "monitors",
+    "semantic_regions"
+  ],
+  "properties": {
+    "profile": { "const": "CoolingPlate-Intent@mesh_v1.0" },
+    "job_meta": {
+      "type": "object",
+      "required": ["locale", "unit_system"],
+      "properties": {
+        "job_id": { "type": "string" },
+        "locale": { "type": "string", "enum": ["zh-CN", "en-US"] },
+        "unit_system": { "type": "string", "const": "SI" }
+      },
+      "additionalProperties": false
+    },
+    "mesh": {
+      "type": "object",
+      "required": ["provided_format", "dimensionality"],
+      "properties": {
+        "provided_format": { "type": "string", "const": "FLUENT_MSH" },
+        "units_hint": { "type": "string", "enum": ["m", "mm", "unknown"] },
+        "dimensionality": { "type": "string", "enum": ["3D"] }
+      },
+      "additionalProperties": false
+    },
+    "scenario": { "type": "string", "const": "liquid_cooling_plate_fluid" },
+    "operating_conditions": {
+      "type": "object",
+      "required": ["time_mode", "flow_regime", "turbulence", "inlets", "outlets"],
+      "properties": {
+        "time_mode": { "type": "string", "enum": ["steady", "transient"] },
+        "flow_regime": { "type": "string", "enum": ["incompressible", "lowMach"] },
+        "turbulence": { "type": "string", "enum": ["laminar", "RANS"] },
+        "turb_model_hint": { "type": "string", "enum": ["kOmegaSST", "kEpsilon", "auto", ""] },
+        "inlets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["semantic", "quantity", "value", "T_in"],
+            "properties": {
+              "semantic": { "type": "string", "enum": ["primary_inlet"] },
+              "quantity": { "type": "string", "enum": ["volumetricFlowRate", "velocity", "massFlowRate"] },
+              "value": {
+                "type": "object",
+                "required": ["si", "unit"],
+                "properties": {
+                  "original": { "type": "string" },
+                  "si": { "type": "number" },
+                  "unit": { "type": "string", "enum": ["m3/s", "m/s", "kg/s"] }
+                },
+                "additionalProperties": false
+              },
+              "T_in": {
+                "type": "object",
+                "required": ["si", "unit"],
+                "properties": {
+                  "si": { "type": "number" },
+                  "unit": { "type": "string", "const": "K" }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "outlets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["semantic", "type", "p"],
+            "properties": {
+              "semantic": { "type": "string", "enum": ["primary_outlet"] },
+              "type": { "type": "string", "enum": ["pressureOutlet"] },
+              "p": {
+                "type": "object",
+                "required": ["si", "unit"],
+                "properties": {
+                  "si": { "type": "number" },
+                  "unit": { "type": "string", "enum": ["Pa", "Pa(gauge)"] }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "gravity": {
+          "type": "object",
+          "properties": { "enabled": { "type": "boolean" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "thermal_loads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["region_semantic", "type", "value"],
+        "properties": {
+          "region_semantic": { "type": "string", "enum": ["heater_zone"] },
+          "type": { "type": "string", "enum": ["heatFlux", "totalPower", "isothermal"] },
+          "value": {
+            "type": "object",
+            "required": ["si", "unit"],
+            "properties": {
+              "original": { "type": "string" },
+              "si": { "type": "number" },
+              "unit": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "materials": {
+      "type": "object",
+      "required": ["fluid"],
+      "properties": {
+        "fluid": {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string" },
+            "rho": { "$ref": "#/$defs/prop_real" },
+            "mu":  { "$ref": "#/$defs/prop_real" },
+            "cp":  { "$ref": "#/$defs/prop_real" },
+            "k":   { "$ref": "#/$defs/prop_real" },
+            "ref_T": { "$ref": "#/$defs/prop_real" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "modeling_hints": {
+      "type": "object",
+      "properties": {
+        "preferred_family": { "type": "string", "enum": ["auto", "fluent", "openfoam"] },
+        "mesh_quality_expectation": { "type": "string", "enum": ["as_is"] },
+        "boundary_layer_target_yplus": { "type": "number" },
+        "stability_bias": { "type": "string", "enum": ["conservative", "balanced", "aggressive"] }
+      },
+      "additionalProperties": false
+    },
+    "accuracy_pref": {
+      "type": "object",
+      "required": ["residual_targets", "max_iter"],
+      "properties": {
+        "residual_targets": {
+          "type": "object",
+          "required": ["U", "p", "T"],
+          "properties": {
+            "U": { "type": "number" },
+            "p": { "type": "number" },
+            "T": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "max_iter": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "deliverables": {
+      "type": "object",
+      "required": ["reports", "plots", "exports"],
+      "properties": {
+        "reports": { "type": "array", "items": { "type": "string" } },
+        "plots":   { "type": "array", "items": { "type": "string" } },
+        "exports": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "monitors": {
+      "type": "object",
+      "required": ["residuals", "mass_balance"],
+      "properties": {
+        "residuals": { "type": "array", "items": { "type": "string", "enum": ["p", "U", "T"] } },
+        "mass_balance": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "semantic_regions": {
+      "type": "object",
+      "required": ["required"],
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["primary_inlet", "primary_outlet", "heater_zone"] }
+        },
+        "optional": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["adiabatic_walls", "symmetry_planes"] }
+        }
+      },
+      "additionalProperties": false
+    },
+    "binding_hints": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "open_questions": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "prop_real": {
+      "type": "object",
+      "required": ["si", "unit"],
+      "properties": {
+        "si": { "type": "number" },
+        "unit": { "type": "string" },
+        "at": { "type": "string" },
+        "optional": { "type": "boolean" },
+        "original": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

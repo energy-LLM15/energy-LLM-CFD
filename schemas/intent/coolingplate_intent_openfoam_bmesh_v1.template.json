@@ -1,0 +1,131 @@
+{
+  "profile": "CoolingPlate-OF-Intent@blockMesh_v1.0",
+  "job_meta": {
+    "job_id": "",
+    "locale": "zh-CN",
+    "unit_system": "SI"
+  },
+
+  "meshing": {
+    "mode": "blockMesh",
+    "blockMesh": {
+      "geometry": {
+        "type": "duct",
+        "dimension_mode": "3D",           
+        "length_m": 0.10,                 
+        "width_m": 0.010,                 
+        "height_m": 0.002,                
+        "thickness_2d_m": 0.002           
+      },
+      "cells": {
+        "nx": 200,
+        "ny": 40,
+        "nz": 16                          
+      },
+      "grading": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "patch_semantics": {
+        "primary_inlet": "minX",
+        "primary_outlet": "maxX",
+        "heater_zone": "maxZ"
+      },
+      "patch_names": {
+        "inlet": "inlet",
+        "outlet": "outlet",
+        "heater": "heater",
+        "walls": ["side", "bottom"]
+      }
+    }
+  },
+
+  "scenario": "liquid_cooling_plate_fluid",
+
+  "operating_conditions": {
+    "time_mode": "steady",
+    "flow_regime": "incompressible",
+    "turbulence": "RANS",
+    "turb_model_hint": "kOmegaSST",
+
+    "inlets": [
+      {
+        "semantic": "primary_inlet",
+        "quantity": "volumetricFlowRate",
+        "value": { "original": "1 L/min", "si": 1.6667e-05, "unit": "m3/s" },
+        "T_in":  { "si": 300.0, "unit": "K" }
+      }
+    ],
+
+    "outlets": [
+      {
+        "semantic": "primary_outlet",
+        "type": "pressureOutlet",
+        "p": { "si": 0.0, "unit": "Pa(gauge)" }
+      }
+    ],
+
+    "gravity": { "enabled": false }
+  },
+
+  "thermal_loads": [
+    {
+      "region_semantic": "heater_zone",
+      "type": "totalPower",
+      "value": { "original": "default 10 W", "si": 10.0, "unit": "W" }
+    }
+  ],
+
+  "materials": {
+    "fluid": { "name": "water" }
+  },
+
+  "openfoam": {
+    "solver": "buoyantSimpleFoam",
+    "turbulence": "RAS",
+    "ras_model": "kOmegaSST",
+    "gravity": { "g": [0.0, 0.0, 0.0] },
+
+    "controls": {
+      "endTime": 1000,
+      "writeInterval": 100,
+      "deltaT": 1.0,
+      "writeFormat": "ascii"
+    },
+
+    "numerics": {
+      "schemes_hint": "bounded",
+      "under_relaxation": { "p": 0.3, "U": 0.7, "T": 0.7 }
+    },
+
+    "parallel": {
+      "n_ranks": 4,
+      "decompose": "scotch"
+    }
+  },
+
+  "accuracy_pref": {
+    "residual_targets": { "U": 1e-5, "p": 1e-4, "T": 1e-6 },
+    "max_iter": 1000
+  },
+
+  "deliverables": {
+    "reports": ["deltaP", "T_out_avg", "thermal_resistance"],
+    "plots": ["residuals", "outlet_T_history"],
+    "exports": ["U", "p", "T"]
+  },
+
+  "monitors": {
+    "residuals": ["p", "U", "T"],
+    "mass_balance": true
+  },
+
+  "assumptions": [
+    "无外部网格时使用 blockMesh 生成矩形直通道；复杂冷板几何后续扩展 snappyHexMesh 或外部网格。",
+    "稳态 RANS kOmegaSST，能量方程开启；g=0 不考虑浮力。",
+    "未给热载荷时默认施加总功率 10 W 于顶面（heater_zone=maxZ），生成器将基于顶面面积换算壁面热通量。"
+  ],
+
+  "open_questions": []
+}

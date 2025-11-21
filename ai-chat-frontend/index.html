@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="OpenFOAM 智能仿真助手 · 本机前端 + NAT 到虚机 Foam-Agent Bridge (http://localhost:18080 → 192.168.157.129:8080)" />
+    <title>OpenFOAM 智能仿真助手 · Foam‑Agent Bridge</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-theme="dark">
+    <div id="app" class="app-shell">
+      <!-- 侧栏（会话列表等，保持原 DOM 钩子，JS 组件会挂载） -->
+      <aside class="sidebar" data-component="sidebar"></aside>
+
+      <!-- 主聊天区 -->
+      <main class="chat" data-component="chat">
+        <!-- 顶部 Header：主题切换、求解器下拉、模型下拉（DeepSeek 翻译用） -->
+        <header class="chat__header" data-component="header"></header>
+
+        <!-- 工具栏（维度 2D/3D 开关 + “发送/生成”按钮），保留占位 -->
+        <div class="chat__toolbar" data-component="toolbar"></div>
+
+        <!-- 消息流区域 -->
+        <section class="chat__messages" data-component="messages" aria-live="polite"></section>
+
+        <!-- 输入区：文本 + 附件 + 发送/停止按钮 -->
+        <footer class="chat__input" data-component="input"></footer>
+      </main>
+    </div>
+
+    <noscript>
+      本页面需要启用 JavaScript 才能正常使用。
+    </noscript>
+
+    <!-- 入口脚本：所有实际逻辑（DeepSeek 翻译 + FastAPI Bridge 调用）都在 js/*.js 内实现 -->
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>

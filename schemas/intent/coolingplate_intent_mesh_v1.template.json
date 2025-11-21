@@ -1,0 +1,54 @@
+{
+  "profile": "CoolingPlate-Intent@mesh_v1.0",
+  "job_meta": { "job_id": "", "locale": "zh-CN", "unit_system": "SI" },
+  "mesh": { "provided_format": "FLUENT_MSH", "units_hint": "unknown", "dimensionality": "3D" },
+  "scenario": "liquid_cooling_plate_fluid",
+  "operating_conditions": {
+    "time_mode": "steady",
+    "flow_regime": "incompressible",
+    "turbulence": "RANS",
+    "turb_model_hint": "kOmegaSST",
+    "inlets": [
+      {
+        "semantic": "primary_inlet",
+        "quantity": "volumetricFlowRate",
+        "value": { "original": "", "si": 0.0, "unit": "m3/s" },
+        "T_in":  { "si": 300.0, "unit": "K" }
+      }
+    ],
+    "outlets": [
+      { "semantic": "primary_outlet", "type": "pressureOutlet", "p": { "si": 0.0, "unit": "Pa(gauge)" } }
+    ],
+    "gravity": { "enabled": false }
+  },
+  "thermal_loads": [],
+  "materials": { "fluid": { "name": "water" } },
+  "modeling_hints": {
+    "preferred_family": "auto",
+    "mesh_quality_expectation": "as_is",
+    "boundary_layer_target_yplus": 30,
+    "stability_bias": "conservative"
+  },
+  "accuracy_pref": {
+    "residual_targets": { "U": 1e-5, "p": 1e-4, "T": 1e-6 },
+    "max_iter": 1000
+  },
+  "deliverables": {
+    "reports": ["deltaP", "T_out_avg", "thermal_resistance"],
+    "plots":   ["residuals", "outlet_T_history"],
+    "exports": ["U", "p", "T"]
+  },
+  "monitors": { "residuals": ["p","U","T"], "mass_balance": true },
+  "semantic_regions": {
+    "required": ["primary_inlet","primary_outlet","heater_zone"],
+    "optional": ["adiabatic_walls"]
+  },
+  "binding_hints": {
+    "primary_inlet":  ["inlet","in*"],
+    "primary_outlet": ["outlet","out*"],
+    "heater_zone":    ["heater","hot","qwall","chip"]
+  },
+  "constraints": {},
+  "assumptions": [],
+  "open_questions": []
+}
